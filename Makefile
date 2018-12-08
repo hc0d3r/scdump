@@ -1,4 +1,8 @@
-.PHONY: clean
+.PHONY: clean install
+
+INSTALLPROG?=install
+INSTALLDIR?=/usr/bin
+
 
 CFLAGS+=-Wall -Wextra -pie -fPIE -fstack-protector-all \
 		-D_FORTIFY_SOURCE=2 -O2
@@ -25,6 +29,8 @@ obj/io.o: src/io.c
 obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
+install:
+	$(INSTALLPROG) -s scdump $(INSTALLDIR)
 
 clean:
 	rm -f $(objs) scdump
