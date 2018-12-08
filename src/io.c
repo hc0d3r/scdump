@@ -81,7 +81,7 @@ void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw)
                 *ptr++ = htable[buf[i] & 0xf];
             }
 
-            write(fdout, hdump, i*4+1);
+            write(fdout, hdump, i*4);
             ptr = hdump;
         }
 
