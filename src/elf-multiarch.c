@@ -28,8 +28,8 @@ void arch_sufix(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
         xread(fh->fd, &pheader, sizeof(pheader));
 
         if(start >= pheader.p_vaddr && pheader.p_vaddr+pheader.p_filesz >= start+end){
-                datadump(fh, pheader.p_offset+start-pheader.p_vaddr, end, opts->fd_out, opts->raw);
-                return;
+            datadump(fh, pheader.p_offset+start-pheader.p_vaddr, end, opts->fd_out, opts->raw);
+            return;
         }
     }
 
@@ -137,8 +137,6 @@ void arch_sufix(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, stru
     for(i=0; i<header->e_shnum; i++){
         xread(fh->fd, &section, sizeof(ElfW(Shdr)));
         if(section.sh_name == index){
-            //printf("found\n");
-            //datadump(fh, section.sh_offset, section.sh_size);
             datadump(fh, section.sh_offset, section.sh_size, opts->fd_out, opts->raw);
             return;
         }
