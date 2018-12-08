@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 #include <err.h>
 
 #include "elf-multiarch.h"
@@ -32,7 +33,7 @@ void arch_sufix(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
         }
     }
 
-    warn("address %p not found\n", opts->addr);
+    warn("address %p not found\n", (void*)(uintptr_t)start);
 
 }
 
@@ -49,7 +50,7 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
     struct io_utils *fh = &opts->fh;
 
     strindex = get_section_index(shstrtab->ptr, shstrtab->size, ".strtab");
-    if(!index){
+    if(!strindex){
         warn("section .strtab not found\n");
         return;
     }
@@ -145,14 +146,9 @@ void arch_sufix(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, stru
 }
 
 void arch_sufix(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
-    struct dynstr shstrtab, strtab;
+    struct dynstr shstrtab;
     ElfW(Shdr) shstrtab_section;
-    ElfW(Shdr) symtab;
-    ElfW(Sym) sym;
     ElfW(Off) shstr_offset;
-
-    char *section_name;
-    int i;
 
     struct io_utils *fh = &opts->fh;
 

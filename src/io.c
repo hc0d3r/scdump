@@ -37,7 +37,7 @@ void xpread(int fd, void *buf, size_t count, off_t offset){
     if(n == -1)
         pdie("pread");
 
-    else if(n != count)
+    else if((size_t)n != count)
         die("failed to read size: %lu, bytes read = %ld\n", count, n);
 
 }
@@ -48,11 +48,11 @@ void xread(int fd, void *buf, size_t count){
     if(n == -1)
         pdie("read");
 
-    else if(n != count)
+    else if((size_t)n != count)
         die("failed to read size: %lu, bytes read = %ld\n", count, n);
 }
 
-void datadump(struct io_utils *fh, off_t offset, off_t len, int fdout, int raw){
+void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw){
     static const char htable[]="0123456789abcdef";
     unsigned char buf[1024];
     char hdump[4097];
@@ -74,7 +74,7 @@ void datadump(struct io_utils *fh, off_t offset, off_t len, int fdout, int raw){
         if(raw)
             write(fdout, buf, n);
         else {
-            for(i=0; i<n; i++){
+            for(i=0; i<(size_t)n; i++){
                 *ptr++ = '\\';
                 *ptr++ = 'x';
                 *ptr++ = htable[buf[i] >> 4];

@@ -6,7 +6,7 @@
 
 struct dynstr {
     char *ptr;
-    int size;
+    size_t size;
 };
 
 union xuint {

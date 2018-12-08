@@ -18,9 +18,9 @@ int get_elf_arch(int fd, void *header, int size){
 
     e_ident = header;
     ret = e_ident[EI_CLASS];
-    if(ret == ELFCLASS32 && n < sizeof(Elf32_Ehdr))
+    if(ret == ELFCLASS32 && (size_t)n < sizeof(Elf32_Ehdr))
         ret = 0;
-    else if(ret == ELFCLASS64 && n < sizeof(Elf64_Ehdr))
+    else if(ret == ELFCLASS64 && (size_t)n < sizeof(Elf64_Ehdr))
         ret = 0;
 
     /* only support little-endian for now, if you run it on a big-endian machine
