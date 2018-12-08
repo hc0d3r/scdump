@@ -55,7 +55,7 @@ void xread(int fd, void *buf, size_t count){
 void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw){
     static const char htable[]="0123456789abcdef";
     unsigned char buf[1024];
-    char hdump[4097];
+    char hdump[4096];
     char *ptr = hdump;
 
     size_t total = 0, size, i;
@@ -80,9 +80,9 @@ void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw)
                 *ptr++ = htable[buf[i] >> 4];
                 *ptr++ = htable[buf[i] & 0xf];
             }
-            *ptr = '\n';
 
             write(fdout, hdump, i*4+1);
+            ptr = hdump;
         }
 
         if((size_t)n != size){
