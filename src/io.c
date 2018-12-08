@@ -93,4 +93,7 @@ void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw)
         }
         total += n;
     }
+
+    if(!raw)
+        write(fdout, "\n", 1);
 }
