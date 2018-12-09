@@ -33,7 +33,7 @@ void arch_sufix(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
         }
     }
 
-    warn("address %p not found\n", (void*)(uintptr_t)start);
+    warn("address %" arch_sufix(PRIx) " not found\n", start);
 
 }
 
