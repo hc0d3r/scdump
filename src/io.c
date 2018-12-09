@@ -56,7 +56,7 @@ void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw)
     static const char htable[]="0123456789abcdef";
     unsigned char buf[1024];
     char hdump[4096];
-    char *ptr = hdump;
+    char *ptr;
 
     size_t total = 0, size, i;
     ssize_t n;
@@ -74,6 +74,8 @@ void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw)
         if(raw)
             write(fdout, buf, n);
         else {
+            ptr = hdump;
+
             for(i=0; i<(size_t)n; i++){
                 *ptr++ = '\\';
                 *ptr++ = 'x';
@@ -82,7 +84,6 @@ void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw)
             }
 
             write(fdout, hdump, i*4);
-            ptr = hdump;
         }
 
         if((size_t)n != size){
