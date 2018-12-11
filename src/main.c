@@ -91,7 +91,7 @@ int main(int argc, char **argv){
     if(cmd.help)
         help();
 
-    if(!cmd.filename || (!cmd.options.section && !cmd.options.symbol && !cmd.options.addr.addr_64)){
+    if(!cmd.filename || (!cmd.options.section && !cmd.options.symbol && !cmd.options.size.addr_64)){
         die("try 'scdump --help' for further information\n");
     }
 

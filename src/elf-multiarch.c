@@ -150,7 +150,7 @@ void arch_sufix(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts
 
     struct io_utils *fh = &opts->fh;
 
-    if(arch_sufix(opts->addr.addr_))
+    if(arch_sufix(opts->size.addr_))
         arch_sufix(dumpbyaddr)(header, opts);
 
     if(!opts->section && !opts->symbol)

@@ -13,7 +13,7 @@ int get_elf_arch(int fd, void *header, int size){
 
     /* I dont check magic header, etc, etc, just check if elf is
      * 32 or 64 bits */
-    if(n < 4)
+    if(n < EI_CLASS)
         return 0;
 
     e_ident = header;
