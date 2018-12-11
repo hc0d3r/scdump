@@ -41,9 +41,11 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
     ElfW(Shdr) buf[2], *symtab, *strtab;
     ElfW(Off) offset;
     ElfW(Shdr) section;
-    ElfW(Sym) sym;
+    ElfW(Sym) *sym;
     char *sname;
     int found = 0;
+
+    uintX_t symbol_size = 0, diff = 0;
 
     uint32_t i, j, strindex, symindex;
     struct dynstr strtab_dump;
@@ -79,6 +81,7 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
         die("failed to find section\n");
     }
 
+    /* get strtab */
     strtab_dump.size = strtab->sh_size;
     strtab_dump.ptr = malloc(strtab_dump.size);
     if(strtab_dump.ptr == NULL)
@@ -86,17 +89,51 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
 
     xpread(fh->fd, strtab_dump.ptr, strtab_dump.size, strtab->sh_offset);
 
-    xset(fh, symtab->sh_offset);
-    for(i=0; i<symtab->sh_size; i+=sizeof(sym)){
-        xread(fh->fd, &sym, sizeof(sym));
-        if(sym.st_name >= strtab_dump.size || !sym.st_name)
+    /* get symtab */
+    sym = malloc(symtab->sh_size);
+    if(sym == NULL)
+        err(1, "malloc");
+
+    xpread(fh->fd, sym, symtab->sh_size, symtab->sh_offset);
+
+    for(i=0; i<symtab->sh_size; i++){
+        if(sym[i].st_name >= strtab_dump.size || !sym[i].st_name)
             continue;
 
-        sname = strtab_dump.ptr+sym.st_name;
+        sname = strtab_dump.ptr+sym[i].st_name;
+
         if(!strcmp(sname, opts->symbol)){
-            if(!sym.st_size){
-                warn("%s has unknow size\n", opts->symbol);
-                return;
+            if(!sym[i].st_size){
+                for(j=0; j<symtab->sh_size; j++){
+                    if(sym[i].st_shndx != sym[j].st_shndx || j == i)
+                        continue;
+
+                    if(sym[i].st_value > sym[j].st_value)
+                        continue;
+
+                    if(!diff)
+                        diff = sym[j].st_value;
+                    else if(diff > sym[j].st_value)
+                        diff = sym[j].st_value;
+                }
+
+                symbol_size = diff-sym[j].st_value;
+
+                if(!symbol_size){
+                    xset(fh, header->e_shoff+(sizeof(section)*sym[i].st_shndx));
+                    xread(fh->fd, &section, sizeof(section));
+
+                    diff = section.sh_addr+section.sh_size;
+
+                    if(sym[i].st_value > diff){
+                        warn("invalid size\n");
+                        return;
+                    }
+
+                    symbol_size = diff-sym[i].st_value;
+                }
+            } else {
+                symbol_size = sym[i].st_size;
             }
 
             found = 1;
@@ -109,16 +146,16 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
         return;
     }
 
-    if(sym.st_shndx >= header->e_shnum){
+    if(sym[i].st_shndx >= header->e_shnum){
         warn("invalid st_shndx\n");
         return;
     }
 
-    offset = header->e_shoff+sym.st_shndx*sizeof(ElfW(Shdr));
+    offset = header->e_shoff+sym[i].st_shndx*sizeof(ElfW(Shdr));
     xset(fh, offset);
     xread(fh->fd, &section, sizeof(ElfW(Shdr)));
 
-    datadump(fh, section.sh_offset+sym.st_value-section.sh_addr, sym.st_size, opts->fd_out, opts->raw);
+    datadump(fh, section.sh_offset+sym[i].st_value-section.sh_addr, symbol_size, opts->fd_out, opts->raw);
 }
 
 void arch_sufix(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dynstr *shstrtab){
