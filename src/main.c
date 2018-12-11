@@ -68,7 +68,7 @@ void parser_opts(int argc, char **argv, struct scdump_options *cmd){
 
 void help(void){
     static const char msg[]=
-        "-- scdump v0.1 --\n"
+        "-- scdump v" VERSION " --\n"
         "Usage: scdump [file] [options]\n\n"
         "Options:\n"
         "  -S, --section <name>   Dump an entire section\n"

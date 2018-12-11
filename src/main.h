@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "elf-multiarch.h"
 
+#define VERSION "0.2.0"
+
 union elfHeader {
     Elf64_Ehdr header_64;
     Elf32_Ehdr header_32;
