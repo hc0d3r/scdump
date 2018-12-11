@@ -3,7 +3,6 @@
 INSTALLPROG?=install
 INSTALLDIR?=/usr/bin
 
-
 CFLAGS+=-Wall -Wextra -pie -fPIE -fstack-protector-all \
 		-D_FORTIFY_SOURCE=2 -O2
 
@@ -17,17 +16,18 @@ scdump: $(objs)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 obj/elf-multiarch32.o: src/elf-multiarch.c
-	$(CC) $(CFLAGS) -DELFARCH=32 -o $@ -c $<
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) -o $@ -c $< -DELFARCH=32
 
 obj/elf-multiarch64.o: src/elf-multiarch.c
-	$(CC) $(CFLAGS) -DELFARCH=64 -o $@ -c $<
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) -o $@ -c $< -DELFARCH=64
 
-obj/io.o: src/io.c
-	$(CC) $(CFLAGS) -Wno-unused-result -o $@ -c $<
-
+obj/io.o: CFLAGS+= -Wno-unused-result
 
 obj/%.o: src/%.c
-	$(CC) $(CFLAGS) -o $@ -c $<
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) -o $@ -c $<
 
 install:
 	$(INSTALLPROG) -s scdump $(INSTALLDIR)
