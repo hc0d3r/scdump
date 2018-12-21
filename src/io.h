@@ -9,8 +9,6 @@ struct io_utils {
 };
 
 void rdonly(const char *filename, struct io_utils *out);
-void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw);
-
 void xset(struct io_utils *fh, off_t offset);
 void xread(int fd, void *buf, size_t count);
 void xpread(int fd, void *buf, size_t count, off_t offset);

@@ -10,7 +10,7 @@ LDFLAGS+=-Wl,-z,relro,-z,now
 
 objs = 	obj/main.o obj/elf-multiarch32.o \
 		obj/elf-multiarch64.o obj/elf-common.o \
-		obj/io.o
+		obj/io.o obj/datadump.o
 
 scdump: $(objs)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
@@ -23,7 +23,7 @@ obj/elf-multiarch64.o: src/elf-multiarch.c
 	@echo "  CC $<"
 	@$(CC) $(CFLAGS) -o $@ -c $< -DELFARCH=64
 
-obj/io.o: CFLAGS+= -Wno-unused-result
+obj/datadump.o: CFLAGS+=-Wno-unused-result
 
 obj/%.o: src/%.c
 	@echo "  CC $<"

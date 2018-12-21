@@ -7,8 +7,9 @@
 
 #include "elf-multiarch.h"
 #include "elf-common.h"
-#include "io.h"
+#include "datadump.h"
 #include "common.h"
+#include "io.h"
 
 void arch_sufix(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
     ElfW(Phdr) pheader;
