@@ -11,13 +11,13 @@
 #include "common.h"
 #include "io.h"
 
-void arch_sufix(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
+void archS(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
     ElfW(Phdr) pheader;
     uintX_t start, end;
     uint16_t i;
 
-    start = arch_sufix(opts->addr.addr_);
-    end = arch_sufix(opts->size.addr_);
+    start = archS(opts->addr.addr_);
+    end = archS(opts->size.addr_);
 
     if(!header->e_phoff)
         return;
@@ -34,11 +34,11 @@ void arch_sufix(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
         }
     }
 
-    warn("address %" arch_sufix(PRIx) " not found\n", start);
+    warn("address %" archS(PRIx) " not found\n", start);
 
 }
 
-void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dynstr *shstrtab){
+void archS(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dynstr *shstrtab){
     ElfW(Shdr) buf[2], *symtab, *strtab;
     ElfW(Off) offset;
     ElfW(Shdr) section;
@@ -161,7 +161,7 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
     datadump(fh, section.sh_offset+sym[i].st_value-section.sh_addr, symbol_size, opts->fd_out, opts->raw);
 }
 
-void arch_sufix(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dynstr *shstrtab){
+void archS(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dynstr *shstrtab){
     ElfW(Shdr) section;
     uint32_t i, index;
 
@@ -183,15 +183,15 @@ void arch_sufix(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, stru
     }
 }
 
-void arch_sufix(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
+void archS(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
     struct dynstr shstrtab;
     ElfW(Shdr) shstrtab_section;
     ElfW(Off) shstr_offset;
 
     struct io_utils *fh = &opts->fh;
 
-    if(arch_sufix(opts->size.addr_))
-        arch_sufix(dumpbyaddr)(header, opts);
+    if(archS(opts->size.addr_))
+        archS(dumpbyaddr)(header, opts);
 
     if(!opts->section && !opts->symbol)
         return;
@@ -214,9 +214,9 @@ void arch_sufix(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts
     xpread(fh->fd, shstrtab.ptr, shstrtab.size, shstrtab_section.sh_offset);
 
     if(opts->section)
-        arch_sufix(dumpsection)(header, opts, &shstrtab);
+        archS(dumpsection)(header, opts, &shstrtab);
 
     if(opts->symbol)
-        arch_sufix(dumpbysymbol)(header, opts, &shstrtab);
+        archS(dumpbysymbol)(header, opts, &shstrtab);
 
 }

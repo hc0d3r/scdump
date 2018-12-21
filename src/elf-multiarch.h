@@ -35,9 +35,9 @@ struct extract_opts {
 #define uintX_te(x, y) uintX_t1(x, y, _t)
 #define uintX_t1(x, y, z) x##y##z
 
-#define arch_sufix(n) _arch_sufix(n, ELFARCH)
-#define _arch_sufix(n, a) _arch_sufix1(n, a)
-#define _arch_sufix1(n, a) n##a
+#define archS(n) _archS(n, ELFARCH)
+#define _archS(n, a) _archS1(n, a)
+#define _archS1(n, a) n##a
 
 
 void extract_shellcode64(Elf64_Ehdr *header, struct extract_opts *opts);
