@@ -7,6 +7,7 @@ CFLAGS+=-Wall -Wextra -pie -fPIE -fstack-protector-all \
 		-D_FORTIFY_SOURCE=2 -O2
 
 LDFLAGS+=-Wl,-z,relro,-z,now
+VERSION := $(file <VERSION)
 
 objs = 	obj/main.o obj/elf-multiarch32.o \
 		obj/elf-multiarch64.o obj/elf-common.o \
@@ -15,8 +16,7 @@ objs = 	obj/main.o obj/elf-multiarch32.o \
 all: scdump
 
 VERSION:
-	@git describe > VERSION
-	$(eval VERSION := $(file <VERSION))
+	@[ -f ./VERSION ] && true || git describe > VERSION
 
 scdump: $(objs)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
