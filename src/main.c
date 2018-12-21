@@ -26,6 +26,7 @@ void parser_opts(int argc, char **argv, struct scdump_options *cmd){
         {"address", required_argument, 0, 'a'},
         {"output", required_argument, 0, 'o'},
         {"raw", no_argument, 0, 'r'},
+        {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'},
         {NULL, 0, NULL, 0}
     };
@@ -33,7 +34,7 @@ void parser_opts(int argc, char **argv, struct scdump_options *cmd){
     memset(cmd, 0x0, sizeof(struct scdump_options));
     cmd->options.fd_out = 1;
 
-    while((opt = getopt_long(argc, argv, "S:s:a:o:rh", loptions, NULL)) != -1){
+    while((opt = getopt_long(argc, argv, "S:s:a:o:rhv", loptions, NULL)) != -1){
         switch(opt){
             case 'S':
                 cmd->options.section = optarg;
@@ -52,6 +53,10 @@ void parser_opts(int argc, char **argv, struct scdump_options *cmd){
             break;
             case 'r':
                 cmd->options.raw = 1;
+            break;
+            case 'v':
+                printf("v%s\n", VERSION);
+                exit(0);
             break;
             case 'h':
                 cmd->help = 1;
@@ -77,6 +82,7 @@ void help(void){
         "                         Dump shellcode based on virtual address\n"
         "  -o, --output <file>    Write to file instead of stdout\n"
         "  -r, --raw              Raw output\n"
+        "  -v, --version          print current version\n"
         "  -h, --help             Display this help menu";
 
     puts(msg);
