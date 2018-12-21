@@ -1,4 +1,4 @@
-.PHONY: clean install VERSION
+.PHONY: clean install
 
 INSTALLPROG?=install
 INSTALLDIR?=/usr/bin
@@ -12,7 +12,7 @@ objs = 	obj/main.o obj/elf-multiarch32.o \
 		obj/elf-multiarch64.o obj/elf-common.o \
 		obj/io.o obj/datadump.o
 
-all: VERSION scdump
+all: scdump
 
 VERSION:
 	@git describe > VERSION
@@ -40,4 +40,4 @@ install:
 	$(INSTALLPROG) -s scdump $(INSTALLDIR)
 
 clean:
-	rm -f $(objs) scdump VERSION
+	rm -f $(objs) scdump
