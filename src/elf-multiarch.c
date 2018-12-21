@@ -46,7 +46,7 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
     char *sname;
     int found = 0;
 
-    uintX_t symbol_size = 0, diff = 0;
+    uintX_t symbol_size = 0, diff;
 
     uint32_t i, j, strindex, symindex;
     struct dynstr strtab_dump;
@@ -105,6 +105,7 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
 
         if(!strcmp(sname, opts->symbol)){
             if(!sym[i].st_size){
+                diff = 0;
                 for(j=0; j<symtab->sh_size; j++){
                     if(sym[i].st_shndx != sym[j].st_shndx || j == i)
                         continue;
@@ -114,11 +115,12 @@ void arch_sufix(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, str
 
                     if(!diff)
                         diff = sym[j].st_value;
-                    else if(diff > sym[j].st_value)
+                    else if(diff < sym[j].st_value)
                         diff = sym[j].st_value;
                 }
 
-                symbol_size = diff-sym[j].st_value;
+                if(diff)
+                    symbol_size = diff-sym[i].st_value;
 
                 if(!symbol_size){
                     xset(fh, header->e_shoff+(sizeof(section)*sym[i].st_shndx));
