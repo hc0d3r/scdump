@@ -55,7 +55,7 @@ void parser_opts(int argc, char **argv, struct scdump_options *cmd){
                 cmd->options.raw = 1;
             break;
             case 'v':
-                printf("v%s\n", VERSION);
+                printf("%s\n", VERSION);
                 exit(0);
             break;
             case 'h':

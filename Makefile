@@ -1,4 +1,4 @@
-.PHONY: clean install
+.PHONY: clean install VERSION
 
 INSTALLPROG?=install
 INSTALLDIR?=/usr/bin
@@ -12,6 +12,12 @@ objs = 	obj/main.o obj/elf-multiarch32.o \
 		obj/elf-multiarch64.o obj/elf-common.o \
 		obj/io.o obj/datadump.o
 
+all: VERSION scdump
+
+VERSION:
+	@git describe > VERSION
+	$(eval VERSION := $(file <VERSION))
+
 scdump: $(objs)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
@@ -24,6 +30,7 @@ obj/elf-multiarch64.o: src/elf-multiarch.c
 	@$(CC) $(CFLAGS) -o $@ -c $< -DELFARCH=64
 
 obj/datadump.o: CFLAGS+=-Wno-unused-result
+obj/main.o: CFLAGS+=-DVERSION=\"$(VERSION)\"
 
 obj/%.o: src/%.c
 	@echo "  CC $<"
@@ -33,4 +40,4 @@ install:
 	$(INSTALLPROG) -s scdump $(INSTALLDIR)
 
 clean:
-	rm -f $(objs) scdump
+	rm -f $(objs) scdump VERSION
