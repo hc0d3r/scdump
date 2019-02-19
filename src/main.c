@@ -14,6 +14,7 @@
 #include "main.h"
 #include "elf-multiarch.h"
 #include "elf-common.h"
+#include "elf-arch.h"
 #include "common.h"
 #include "io.h"
 
@@ -109,7 +110,7 @@ int main(int argc, char **argv){
             err(1, "open");
     }
 
-    switch(get_elf_arch(cmd.options.fh.fd, &header, sizeof(header))){
+    switch(elf_arch(cmd.options.fh.fd, &header, sizeof(header))){
         case ELFCLASS32:
             extract_shellcode32(&header.header_32, &cmd.options);
         break;
