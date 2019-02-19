@@ -21,11 +21,11 @@ VERSION:
 scdump: $(objs)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
-obj/elf-multiarch32.o: src/elf-multiarch.c
+obj/%32.o: src/%.c
 	@echo "  CC $<"
 	@$(CC) $(CFLAGS) -o $@ -c $< -DELFARCH=32
 
-obj/elf-multiarch64.o: src/elf-multiarch.c
+obj/%64.o: src/%.c
 	@echo "  CC $<"
 	@$(CC) $(CFLAGS) -o $@ -c $< -DELFARCH=64
 
