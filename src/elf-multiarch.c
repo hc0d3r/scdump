@@ -44,7 +44,6 @@ void archS(dumpbyaddr)(struct extract_opts *opts, struct archS(info_elf) *info){
 
 void archS(dumpbysymbol)(struct extract_opts *opts, struct archS(info_elf) *info, struct dynstr *shstrtab){
     ElfW(Shdr) *symtab, *strtab, *section;
-    ElfW(Off) offset;
     ElfW(Ehdr) *header;
     ElfW(Sym) *sym;
     char *sname;
