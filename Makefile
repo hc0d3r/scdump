@@ -11,7 +11,9 @@ VERSION := $(file <VERSION)
 
 objs = 	obj/main.o obj/elf-multiarch32.o \
 		obj/elf-multiarch64.o obj/elf-arch.o \
-		obj/elf-common.o obj/io.o obj/datadump.o
+		obj/elf-common.o obj/io.o obj/datadump.o \
+		obj/elf-shdr64.o obj/elf-shdr32.o \
+		obj/elf-phdr64.o obj/elf-phdr32.o
 
 all: scdump
 

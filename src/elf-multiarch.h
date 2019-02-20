@@ -10,17 +10,29 @@ struct dynstr {
     size_t size;
 };
 
-union xuint {
+typedef union {
     uint64_t addr_64;
     uint32_t addr_32;
+} xuint;
+
+struct info_elf64 {
+    Elf64_Shdr *shdr;
+    Elf64_Phdr *phdr;
+    Elf64_Ehdr *header;
+};
+
+struct info_elf32 {
+    Elf32_Shdr *shdr;
+    Elf32_Phdr *phdr;
+    Elf32_Ehdr *header;
 };
 
 
 struct extract_opts {
     char *section;
     char *symbol;
-    union xuint addr;
-    union xuint size;
+    xuint addr;
+    xuint size;
 
     int raw;
 

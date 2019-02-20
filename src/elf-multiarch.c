@@ -7,29 +7,33 @@
 
 #include "elf-multiarch.h"
 #include "elf-common.h"
+#include "elf-shdr.h"
+#include "elf-phdr.h"
 #include "datadump.h"
 #include "common.h"
 #include "io.h"
 
-void archS(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
-    ElfW(Phdr) pheader;
+void archS(dumpbyaddr)(struct extract_opts *opts, struct archS(info_elf) *info){
+    ElfW(Ehdr) *header;
+    ElfW(Phdr) *pheader;
     uintX_t start, end;
     uint16_t i;
 
     start = archS(opts->addr.addr_);
     end = archS(opts->size.addr_);
 
+    header = info->header;
+
     if(!header->e_phoff)
         return;
 
     struct io_utils *fh = &opts->fh;
 
-    xset(fh, header->e_phoff);
     for(i=0; i<header->e_phnum; i++){
-        xread(fh->fd, &pheader, sizeof(pheader));
+        pheader = info->phdr + i;
 
-        if(start >= pheader.p_vaddr && pheader.p_vaddr+pheader.p_filesz >= start+end){
-            datadump(fh, pheader.p_offset+start-pheader.p_vaddr, end, opts->fd_out, opts->raw);
+        if(start >= pheader->p_vaddr && pheader->p_vaddr+pheader->p_filesz >= start+end){
+            datadump(fh, pheader->p_offset+start-pheader->p_vaddr, end, opts->fd_out, opts->raw);
             return;
         }
     }
@@ -38,10 +42,10 @@ void archS(dumpbyaddr)(ElfW(Ehdr) *header, struct extract_opts *opts){
 
 }
 
-void archS(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dynstr *shstrtab){
-    ElfW(Shdr) buf[2], *symtab, *strtab;
+void archS(dumpbysymbol)(struct extract_opts *opts, struct archS(info_elf) *info, struct dynstr *shstrtab){
+    ElfW(Shdr) *symtab, *strtab, *section;
     ElfW(Off) offset;
-    ElfW(Shdr) section;
+    ElfW(Ehdr) *header;
     ElfW(Sym) *sym;
     char *sname;
     int found = 0;
@@ -64,18 +68,28 @@ void archS(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, struct d
         return;
     }
 
+    header = info->header;
+
     symtab = NULL;
     strtab = NULL;
     j = 0;
 
-    xset(fh, header->e_shoff);
     for(i=0; i<header->e_shnum && j<2; i++){
-        xread(fh->fd, &(buf[j]), sizeof(ElfW(Shdr)));
-        if(buf[j].sh_name == strindex){
-            strtab = &(buf[j++]);
-        } else if(buf[j].sh_name == symindex){
-            symtab = &(buf[j++]);
+        section = info->shdr + i;
+
+        if(section->sh_name == strindex){
+            strtab = section;
         }
+
+        else if(section->sh_name == symindex){
+            symtab = section;
+        }
+
+        else {
+            continue;
+        }
+
+        j++;
     }
 
     if(!symtab || !strtab){
@@ -103,45 +117,54 @@ void archS(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, struct d
 
         sname = strtab_dump.ptr+sym[i].st_name;
 
-        if(!strcmp(sname, opts->symbol)){
-            if(!sym[i].st_size){
-                diff = 0;
-                for(j=0; j<symtab->sh_size; j++){
-                    if(sym[i].st_shndx != sym[j].st_shndx || j == i)
-                        continue;
+        if(strcmp(sname, opts->symbol))
+            continue;
 
-                    if(sym[i].st_value > sym[j].st_value)
-                        continue;
+        if(sym[i].st_size){
+            symbol_size = sym[i].st_size;
+        }
 
-                    if(!diff)
-                        diff = sym[j].st_value;
-                    else if(diff < sym[j].st_value)
-                        diff = sym[j].st_value;
-                }
+        else {
+            diff = 0;
 
-                if(diff)
-                    symbol_size = diff-sym[i].st_value;
+            for(j=0; j<symtab->sh_size; j++){
+                if(sym[i].st_shndx != sym[j].st_shndx || j == i)
+                    continue;
 
-                if(!symbol_size){
-                    xset(fh, header->e_shoff+(sizeof(section)*sym[i].st_shndx));
-                    xread(fh->fd, &section, sizeof(section));
+                if(sym[i].st_value > sym[j].st_value)
+                    continue;
 
-                    diff = section.sh_addr+section.sh_size;
+                if(!diff)
+                    diff = sym[j].st_value;
 
-                    if(sym[i].st_value > diff){
-                        warn("invalid size\n");
-                        return;
-                    }
-
-                    symbol_size = diff-sym[i].st_value;
-                }
-            } else {
-                symbol_size = sym[i].st_size;
+                else if(diff < sym[j].st_value)
+                    diff = sym[j].st_value;
             }
 
-            found = 1;
-            break;
+            if(diff)
+                symbol_size = diff-sym[i].st_value;
+
+            if(!symbol_size){
+
+                if(sym[i].st_shndx >= header->e_shnum){
+                    warn("invalid st_shndx\n");
+                    return;
+                }
+
+                section = info->shdr + sym[i].st_shndx;
+                diff = section->sh_addr+section->sh_size;
+
+                if(sym[i].st_value > diff){
+                    warn("invalid size\n");
+                    return;
+                }
+
+                symbol_size = diff-sym[i].st_value;
+            }
         }
+
+        found = 1;
+        break;
     }
 
     if(!found){
@@ -154,15 +177,16 @@ void archS(dumpbysymbol)(ElfW(Ehdr) *header, struct extract_opts *opts, struct d
         return;
     }
 
-    offset = header->e_shoff+sym[i].st_shndx*sizeof(ElfW(Shdr));
-    xset(fh, offset);
-    xread(fh->fd, &section, sizeof(ElfW(Shdr)));
+    section = info->shdr + sym[i].st_shndx;
 
-    datadump(fh, section.sh_offset+sym[i].st_value-section.sh_addr, symbol_size, opts->fd_out, opts->raw);
+    datadump(fh, section->sh_offset+sym[i].st_value-section->sh_addr, symbol_size, opts->fd_out, opts->raw);
 }
 
-void archS(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dynstr *shstrtab){
-    ElfW(Shdr) section;
+
+void archS(dumpsection)(struct extract_opts *opts, struct archS(info_elf) *info, struct dynstr *shstrtab){
+    struct io_utils *fh;
+    ElfW(Shdr) *section;
+    ElfW(Ehdr) *header;
     uint32_t i, index;
 
     index = get_section_index(shstrtab->ptr, shstrtab->size, opts->section);
@@ -171,13 +195,14 @@ void archS(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dy
         return;
     }
 
-    struct io_utils *fh = &opts->fh;
+    fh = &opts->fh;
+    header = info->header;
 
-    xset(fh, header->e_shoff);
     for(i=0; i<header->e_shnum; i++){
-        xread(fh->fd, &section, sizeof(ElfW(Shdr)));
-        if(section.sh_name == index){
-            datadump(fh, section.sh_offset, section.sh_size, opts->fd_out, opts->raw);
+        section = info->shdr + i;
+
+        if(section->sh_name == index){
+            datadump(fh, section->sh_offset, section->sh_size, opts->fd_out, opts->raw);
             return;
         }
     }
@@ -185,38 +210,36 @@ void archS(dumpsection)(ElfW(Ehdr) *header, struct extract_opts *opts, struct dy
 
 void archS(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
     struct dynstr shstrtab;
-    ElfW(Shdr) shstrtab_section;
-    ElfW(Off) shstr_offset;
+    ElfW(Shdr) *shstrtab_header;
+    struct archS(info_elf) info;
 
-    struct io_utils *fh = &opts->fh;
+    info.header = header;
+    info.shdr = archS(get_elf_shdr)(header, &opts->fh);
+    info.phdr = archS(get_elf_phdr)(header, &opts->fh);
 
     if(archS(opts->size.addr_))
-        archS(dumpbyaddr)(header, opts);
+        archS(dumpbyaddr)(opts, &info);
 
     if(!opts->section && !opts->symbol)
         return;
 
+
     /* get shstrtab */
+    if(header->e_shstrndx >= header->e_shnum)
+        die("invalid e_shstrndx\n");
 
-    shstr_offset = header->e_shoff+header->e_shstrndx*sizeof(ElfW(Shdr));
-    if(shstr_offset == 0){
-        die("shstrtab null offset\n");
-    }
+    shstrtab_header = info.shdr + header->e_shstrndx;
 
-    xset(fh, shstr_offset);
-    xread(fh->fd, &shstrtab_section, sizeof(ElfW(Shdr)));
-
-    shstrtab.size = shstrtab_section.sh_size;
-    shstrtab.ptr = malloc(shstrtab.size);
-    if(shstrtab.ptr == NULL)
+    shstrtab.size = shstrtab_header->sh_size;
+    if((shstrtab.ptr = malloc(shstrtab.size)) == NULL)
         err(1, "malloc");
 
-    xpread(fh->fd, shstrtab.ptr, shstrtab.size, shstrtab_section.sh_offset);
+    xpread(opts->fh.fd, shstrtab.ptr, shstrtab.size, shstrtab_header->sh_offset);
 
     if(opts->section)
-        archS(dumpsection)(header, opts, &shstrtab);
+        archS(dumpsection)(opts, &info, &shstrtab);
 
     if(opts->symbol)
-        archS(dumpbysymbol)(header, opts, &shstrtab);
+        archS(dumpbysymbol)(opts, &info, &shstrtab);
 
 }
