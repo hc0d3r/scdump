@@ -9,8 +9,8 @@
 #define uintX_te(x, y) uintX_t1(x, y, _t)
 #define uintX_t1(x, y, z) x##y##z
 
-#define archS(n) _archS(n, ELFARCH)
-#define _archS(n, a) _archS1(n, a)
-#define _archS1(n, a) n##a
+#define Arch(n) _Arch(n, ELFARCH)
+#define _Arch(n, a) _Arch1(n, a)
+#define _Arch1(n, a) n##a
 
 #endif

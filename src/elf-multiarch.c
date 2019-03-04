@@ -13,14 +13,14 @@
 #include "common.h"
 #include "io.h"
 
-void archS(dumpbyaddr)(struct extract_opts *opts, struct archS(info_elf) *info){
+void Arch(dumpbyaddr)(struct extract_opts *opts, struct Arch(info_elf) *info){
     ElfW(Ehdr) *header;
     ElfW(Phdr) *pheader;
     uintX_t start, end;
     uint16_t i;
 
-    start = archS(opts->addr.addr_);
-    end = archS(opts->size.addr_);
+    start = Arch(opts->addr.addr_);
+    end = Arch(opts->size.addr_);
 
     header = info->header;
 
@@ -38,11 +38,11 @@ void archS(dumpbyaddr)(struct extract_opts *opts, struct archS(info_elf) *info){
         }
     }
 
-    warn("address %" archS(PRIx) " not found\n", start);
+    warn("address %" Arch(PRIx) " not found\n", start);
 
 }
 
-void archS(dumpbysymbol)(struct extract_opts *opts, struct archS(info_elf) *info, struct dynstr *shstrtab){
+void Arch(dumpbysymbol)(struct extract_opts *opts, struct Arch(info_elf) *info, struct dynstr *shstrtab){
     ElfW(Shdr) *symtab, *strtab, *section;
     ElfW(Ehdr) *header;
     ElfW(Sym) *sym;
@@ -182,7 +182,7 @@ void archS(dumpbysymbol)(struct extract_opts *opts, struct archS(info_elf) *info
 }
 
 
-void archS(dumpsection)(struct extract_opts *opts, struct archS(info_elf) *info, struct dynstr *shstrtab){
+void Arch(dumpsection)(struct extract_opts *opts, struct Arch(info_elf) *info, struct dynstr *shstrtab){
     struct io_utils *fh;
     ElfW(Shdr) *section;
     ElfW(Ehdr) *header;
@@ -207,17 +207,17 @@ void archS(dumpsection)(struct extract_opts *opts, struct archS(info_elf) *info,
     }
 }
 
-void archS(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
+void Arch(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
     struct dynstr shstrtab;
     ElfW(Shdr) *shstrtab_header;
-    struct archS(info_elf) info;
+    struct Arch(info_elf) info;
 
     info.header = header;
-    info.shdr = archS(get_elf_shdr)(header, &opts->fh);
-    info.phdr = archS(get_elf_phdr)(header, &opts->fh);
+    info.shdr = Arch(get_elf_shdr)(header, &opts->fh);
+    info.phdr = Arch(get_elf_phdr)(header, &opts->fh);
 
-    if(archS(opts->size.addr_))
-        archS(dumpbyaddr)(opts, &info);
+    if(Arch(opts->size.addr_))
+        Arch(dumpbyaddr)(opts, &info);
 
     if(!opts->section && !opts->symbol)
         return;
@@ -236,9 +236,9 @@ void archS(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
     xpread(opts->fh.fd, shstrtab.ptr, shstrtab.size, shstrtab_header->sh_offset);
 
     if(opts->section)
-        archS(dumpsection)(opts, &info, &shstrtab);
+        Arch(dumpsection)(opts, &info, &shstrtab);
 
     if(opts->symbol)
-        archS(dumpbysymbol)(opts, &info, &shstrtab);
+        Arch(dumpbysymbol)(opts, &info, &shstrtab);
 
 }

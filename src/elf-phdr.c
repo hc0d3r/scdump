@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <err.h>
 
-ElfW(Phdr) *archS(get_elf_phdr)(ElfW(Ehdr) *header, struct io_utils *fh){
+ElfW(Phdr) *Arch(get_elf_phdr)(ElfW(Ehdr) *header, struct io_utils *fh){
     ElfW(Phdr) *ret;
 
     xset(fh, header->e_phoff);
