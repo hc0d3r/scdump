@@ -21,7 +21,8 @@ VERSION:
 	@[ -f ./VERSION ] && true || git describe > VERSION
 
 scdump: $(objs)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 obj/%32.o: src/%.c
 	@echo "  CC $<"
