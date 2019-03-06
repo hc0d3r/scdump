@@ -9,6 +9,7 @@
 #include "elf-common.h"
 #include "elf-shdr.h"
 #include "elf-phdr.h"
+#include "elf-endian.h"
 #include "datadump.h"
 #include "common.h"
 #include "io.h"
@@ -31,6 +32,12 @@ void Arch(dumpbyaddr)(struct extract_opts *opts, struct Arch(info_elf) *info){
 
     for(i=0; i<header->e_phnum; i++){
         pheader = info->phdr + i;
+
+        if(elf_endian(*header) != C_BYTE_ORDER){
+            bswap_xx(pheader->p_vaddr);
+            bswap_xx(pheader->p_filesz);
+            bswap_xx(pheader->p_offset);
+        }
 
         if(start >= pheader->p_vaddr && pheader->p_vaddr+pheader->p_filesz >= start+end){
             datadump(fh, pheader->p_offset+start-pheader->p_vaddr, end, opts->fd_out, opts->raw);
@@ -200,6 +207,12 @@ void Arch(dumpsection)(struct extract_opts *opts, struct Arch(info_elf) *info, s
     for(i=0; i<header->e_shnum; i++){
         section = info->shdr + i;
 
+        if(elf_endian(*header) != C_BYTE_ORDER){
+            bswap_32(section->sh_name);
+            bswap_xx(section->sh_offset);
+            bswap_xx(section->sh_size);
+        }
+
         if(section->sh_name == index){
             datadump(fh, section->sh_offset, section->sh_size, opts->fd_out, opts->raw);
             return;
@@ -211,6 +224,16 @@ void Arch(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
     struct dynstr shstrtab;
     ElfW(Shdr) *shstrtab_header;
     struct Arch(info_elf) info;
+
+    if(elf_endian(*header) != C_BYTE_ORDER){
+        bswap_xx(header->e_shoff);
+        bswap_16(header->e_shnum);
+
+        bswap_16(header->e_phnum);
+        bswap_xx(header->e_phoff);
+
+        bswap_16(header->e_shstrndx);
+    }
 
     info.header = header;
     info.shdr = Arch(get_elf_shdr)(header, &opts->fh);
@@ -229,9 +252,15 @@ void Arch(extract_shellcode)(ElfW(Ehdr) *header, struct extract_opts *opts){
 
     shstrtab_header = info.shdr + header->e_shstrndx;
 
+    if(elf_endian(*header) != C_BYTE_ORDER)
+        bswap_xx(shstrtab_header->sh_size);
+
     shstrtab.size = shstrtab_header->sh_size;
     if((shstrtab.ptr = malloc(shstrtab.size)) == NULL)
         err(1, "malloc");
+
+    if(elf_endian(*header) != C_BYTE_ORDER)
+        bswap_xx(shstrtab_header->sh_offset);
 
     xpread(opts->fh.fd, shstrtab.ptr, shstrtab.size, shstrtab_header->sh_offset);
 

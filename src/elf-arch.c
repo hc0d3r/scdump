@@ -23,9 +23,8 @@ int elf_arch(int fd, void *header, int size){
     else if(ret == ELFCLASS64 && (size_t)n < sizeof(Elf64_Ehdr))
         ret = 0;
 
-    /* only support little-endian for now, if you run it on a big-endian machine
-     * you pc will explode */
-    if(e_ident[EI_DATA] == ELFDATA2MSB)
+    /* check if elf is little or big endian */
+    if(e_ident[EI_DATA] != ELFDATA2MSB && e_ident[EI_DATA] != ELFDATA2LSB)
         ret = 0;
 
     return ret;
