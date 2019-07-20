@@ -36,7 +36,7 @@ struct extract_opts {
 
     int raw;
 
-    struct io_utils fh;
+    fh_t fh;
     int fd_out;
 };
 

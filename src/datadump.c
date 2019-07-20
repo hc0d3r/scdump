@@ -5,7 +5,7 @@
 #include "datadump.h"
 #include "common.h"
 
-void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw){
+void datadump(fh_t *fh, off_t offset, size_t len, int fdout, int raw){
     static const char htable[]="0123456789abcdef";
     unsigned char buf[1024];
     char hdump[4096];

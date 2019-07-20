@@ -8,7 +8,7 @@
 #include "io.h"
 #include "common.h"
 
-void rdonly(const char *filename, struct io_utils *out){
+void rdonly(const char *filename, fh_t *out){
     struct stat buf;
     out->fd = open(filename, O_RDONLY);
     if(out->fd == -1){
@@ -24,7 +24,7 @@ void rdonly(const char *filename, struct io_utils *out){
     out->size = buf.st_size;
 }
 
-void xset(struct io_utils *fh, off_t offset){
+void xset(fh_t *fh, off_t offset){
     if(fh->size <= offset)
         die("out of bounds\n");
 

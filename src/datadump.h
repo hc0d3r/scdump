@@ -3,7 +3,7 @@
 
 #include "io.h"
 
-void datadump(struct io_utils *fh, off_t offset, size_t len, int fdout, int raw);
+void datadump(fh_t *fh, off_t offset, size_t len, int fdout, int raw);
 
 
 #endif

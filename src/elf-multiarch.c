@@ -28,7 +28,7 @@ void Arch(dumpbyaddr)(struct extract_opts *opts, struct Arch(info_elf) *info){
     if(!header->e_phoff)
         return;
 
-    struct io_utils *fh = &opts->fh;
+    fh_t *fh = &opts->fh;
 
     for(i=0; i<header->e_phnum; i++){
         pheader = info->phdr + i;
@@ -60,7 +60,7 @@ void Arch(dumpbysymbol)(struct extract_opts *opts, struct Arch(info_elf) *info, 
 
     uint32_t i, j, strindex, symindex;
     struct dynstr strtab_dump;
-    struct io_utils *fh = &opts->fh;
+    fh_t *fh = &opts->fh;
 
     strindex = get_section_index(shstrtab->ptr, shstrtab->size, ".strtab");
     if(!strindex){
@@ -190,7 +190,7 @@ void Arch(dumpbysymbol)(struct extract_opts *opts, struct Arch(info_elf) *info, 
 
 
 void Arch(dumpsection)(struct extract_opts *opts, struct Arch(info_elf) *info, struct dynstr *shstrtab){
-    struct io_utils *fh;
+    fh_t *fh;
     ElfW(Shdr) *section;
     ElfW(Ehdr) *header;
     uint32_t i, index;
