@@ -5,49 +5,36 @@
 #include "datadump.h"
 #include "common.h"
 
-void datadump(fh_t *fh, off_t offset, size_t len, int fdout, int raw){
+void datadump(int fdout, int raw, const void *data, size_t len){
     static const char htable[]="0123456789abcdef";
-    unsigned char buf[1024];
-    char hdump[4096];
-    char *ptr;
+    char hdump[4096], *ptr;
+    unsigned char *aux;
+    size_t i, limit, total;
 
-    size_t total = 0, size, i;
-    ssize_t n;
-
-
-    xset(fh, offset);
-
-    while(total != len){
-        size = (total+1024 > len) ? len-total : 1024;
-
-        n = read(fh->fd, buf, size);
-        if(n == -1)
-            pdie("read");
-
-        if(raw)
-            write(fdout, buf, n);
-        else {
-            ptr = hdump;
-
-            for(i=0; i<(size_t)n; i++){
-                *ptr++ = '\\';
-                *ptr++ = 'x';
-                *ptr++ = htable[buf[i] >> 4];
-                *ptr++ = htable[buf[i] & 0xf];
-            }
-
-            write(fdout, hdump, i*4);
-        }
-
-        if((size_t)n != size){
-            warn("failed to dump all\n");
-            break;
-        } else if(!n){
-            break;
-        }
-        total += n;
+    if(raw){
+        write(fdout, data, len);
+        return;
     }
 
-    if(!raw)
-        write(fdout, "\n", 1);
+    aux = (unsigned char *)data;
+    total = 0;
+
+    while(len){
+        ptr = hdump;
+
+        limit = (len > 1024) ? 1024 : len;
+        len -= limit;
+
+        for(i=0; i<limit; i++){
+            *ptr++ = '\\';
+            *ptr++ = 'x';
+            *ptr++ = htable[aux[total]/16];
+            *ptr++ = htable[aux[total]%16];
+
+            total++;
+        }
+        write(fdout, hdump, limit*4);
+    }
+
+    write(fdout, "\n", 1);
 }

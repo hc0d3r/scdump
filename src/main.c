@@ -11,12 +11,11 @@
 #include <err.h>
 #include <string.h>
 
+#include "parser/elf-common.h"
+
 #include "main.h"
-#include "elf-multiarch.h"
-#include "elf-common.h"
-#include "elf-arch.h"
 #include "common.h"
-#include "io.h"
+
 
 void parser_opts(int argc, char **argv, struct scdump_options *cmd){
     char *ptr;
@@ -92,7 +91,6 @@ void help(void){
 
 int main(int argc, char **argv){
     struct scdump_options cmd;
-    union elfHeader header;
 
     parser_opts(argc, argv, &cmd);
     if(cmd.help)
@@ -102,24 +100,25 @@ int main(int argc, char **argv){
         die("try 'scdump --help' for further information\n");
     }
 
-    rdonly(cmd.filename, &(cmd.options.fh));
+    if((cmd.options.fd = open(cmd.filename, O_RDONLY)) == -1)
+        err(1, "open");
 
     if(cmd.output){
         cmd.options.fd_out = open(cmd.output, O_WRONLY|O_CREAT, 0644);
+
         if(cmd.options.fd_out == -1)
             err(1, "open");
     }
 
-    switch(elf_arch(cmd.options.fh.fd, &header, sizeof(header))){
+    switch(get_elf_arch(cmd.options.fd)){
         case ELFCLASS32:
-            extract_shellcode32(&header.header_32, &cmd.options);
-        break;
+            sc_extract32(&(cmd.options));
+            break;
+
         case ELFCLASS64:
-            extract_shellcode64(&header.header_64, &cmd.options);
-        break;
-        case -1:
-            err(1, "read");
-        break;
+            sc_extract64(&(cmd.options));
+            break;
+
         default:
             warn("invalid elf ...\n");
             return 1;

@@ -1,9 +1,8 @@
 #ifndef __DATADUMP_H__
 #define __DATADUMP_H__
 
-#include "io.h"
+#include <stddef.h>
 
-void datadump(fh_t *fh, off_t offset, size_t len, int fdout, int raw);
-
+void datadump(int fdout, int raw, const void *data, size_t len);
 
 #endif

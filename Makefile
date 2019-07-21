@@ -9,11 +9,10 @@ CFLAGS+=-Wall -Wextra -pie -fPIE -fstack-protector-all \
 LDFLAGS+=-Wl,-z,relro,-z,now
 VERSION := $(file <VERSION)
 
-objs = 	obj/main.o obj/elf-multiarch32.o \
-		obj/elf-multiarch64.o obj/elf-arch.o \
-		obj/elf-common.o obj/io.o obj/datadump.o \
-		obj/elf-shdr64.o obj/elf-shdr32.o \
-		obj/elf-phdr64.o obj/elf-phdr32.o
+objs = 	obj/main.o obj/parser-elf-common.o \
+		obj/parser-elf-multiarch64.o obj/parser-elf-multiarch32.o \
+		obj/parser-mapfd.o obj/sc-extract64.o obj/sc-extract32.o \
+		obj/datadump.o
 
 all: scdump
 
@@ -21,19 +20,34 @@ VERSION:
 	@[ -f ./VERSION ] && true || git describe > VERSION
 
 scdump: $(objs)
-	@echo "  CC $<"
+	@echo "  CC scdump"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
-
-obj/%32.o: src/%.c
-	@echo "  CC $<"
-	@$(CC) $(CFLAGS) -o $@ -c $< -DELFARCH=32
-
-obj/%64.o: src/%.c
-	@echo "  CC $<"
-	@$(CC) $(CFLAGS) -o $@ -c $< -DELFARCH=64
 
 obj/datadump.o: CFLAGS+=-Wno-unused-result
 obj/main.o: CFLAGS+=-DVERSION=\"$(VERSION)\"
+obj/%64.o: CFLAGS+=-DELFARCH=64
+obj/%32.o: CFLAGS+=-DELFARCH=32
+
+obj/%32.o: src/%.c
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) -o $@ -c $<
+
+obj/%64.o: src/%.c
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) -o $@ -c $<
+
+obj/parser-%64.o: src/parser/%.c
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) -o $@ -c $<
+
+obj/parser-%32.o: src/parser/%.c
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) -o $@ -c $<
+
+
+obj/parser-%.o: src/parser/%.c
+	@echo "  CC $<"
+	@$(CC) $(CFLAGS) -o $@ -c $<
 
 obj/%.o: src/%.c
 	@echo "  CC $<"
