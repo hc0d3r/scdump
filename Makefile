@@ -12,7 +12,7 @@ VERSION := $(file <VERSION)
 objs = 	obj/main.o obj/parser-elf-common.o \
 		obj/parser-elf-multiarch64.o obj/parser-elf-multiarch32.o \
 		obj/parser-mapfd.o obj/sc-extract64.o obj/sc-extract32.o \
-		obj/datadump.o
+		obj/datadump.o obj/parser-elf-endian64.o obj/parser-elf-endian32.o
 
 all: scdump
 

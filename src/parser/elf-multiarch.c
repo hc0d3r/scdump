@@ -11,16 +11,10 @@
 
 #include "elf-multiarch.h"
 #include "elf-types.h"
+#include "elf-endian.h"
 
 #include "mapfd.h"
 #include "../common.h"
-
-#define sanitize(x, y) do { \
-    if((x) < (y)){ \
-        fprintf(stderr, "error: %zu avaliable %zu required\n", (size_t)(x), (size_t)(y)); \
-        exit(1); \
-    } \
-} while(0)
 
 section_t *getsectionbyname(elf_t *elf, const char *name){
     section_t *ret = NULL;
@@ -72,6 +66,10 @@ Elf_Sym *sym_name_lookup(elf_t *elf, const char *name){
 
     if(!strtab || !symtab){
         goto end;
+    }
+
+    if(elf_endian(*(elf->header)) != M_BYTE_ORDER){
+        symnormalize(symtab->data, symtab->len);
     }
 
     slen = strlen(name)+1;
@@ -153,14 +151,18 @@ void elf_parser(elf_t *elf, int fd){
         exit(1);
     }
 
-    // sanity check
-    sanitize(len, sizeof(Elf_Ehdr));
+    sanity_check(len, sizeof(Elf_Ehdr));
 
     elf->nbytes = len;
     elf->header = header = ptr;
 
-    sanitize(len, header->e_phoff+sizeof(Elf_Phdr)*header->e_phnum);
-    sanitize(len, header->e_shoff+sizeof(Elf_Shdr)*header->e_shnum);
+    // check endiannes
+    if(elf_endian(*(elf->header)) != M_BYTE_ORDER){
+        normalize(ptr, len);
+    } else {
+        sanity_check(len, header->e_phoff+sizeof(Elf_Phdr)*header->e_phnum);
+        sanity_check(len, header->e_shoff+sizeof(Elf_Shdr)*header->e_shnum);
+    }
 
     elf->nsegments = header->e_phnum;
     if(elf->nsegments){
@@ -174,7 +176,7 @@ void elf_parser(elf_t *elf, int fd){
     for(i=0; i<header->e_phnum; i++){
         phdr = ptr+header->e_phoff+sizeof(Elf_Phdr)*i;
 
-        sanitize(len, phdr->p_offset+phdr->p_filesz);
+        sanity_check(len, phdr->p_offset+phdr->p_filesz);
 
         elf->segments[i].header = phdr;
         elf->segments[i].len = phdr->p_filesz;
@@ -197,7 +199,7 @@ void elf_parser(elf_t *elf, int fd){
             elf->sections[i].data = NULL;
             elf->sections[i].len = 0;
         } else {
-            sanitize(len, shdr->sh_offset+shdr->sh_size);
+            sanity_check(len, shdr->sh_offset+shdr->sh_size);
             elf->sections[i].data = ptr+shdr->sh_offset;
             elf->sections[i].len = shdr->sh_size;
         }
