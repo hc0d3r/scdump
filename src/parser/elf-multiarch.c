@@ -16,8 +16,8 @@
 #include "../common.h"
 
 #define sanitize(x, y) do { \
-    if(x < y){ \
-        fprintf(stderr, "error: %zu avaliable %zu required\n", (size_t)x, (size_t)y); \
+    if((x) < (y)){ \
+        fprintf(stderr, "error: %zu avaliable %zu required\n", (size_t)(x), (size_t)(y)); \
         exit(1); \
     } \
 } while(0)
@@ -159,6 +159,9 @@ void elf_parser(elf_t *elf, int fd){
     elf->nbytes = len;
     elf->header = header = ptr;
 
+    sanitize(len, header->e_phoff+sizeof(Elf_Phdr)*header->e_phnum);
+    sanitize(len, header->e_shoff+sizeof(Elf_Shdr)*header->e_shnum);
+
     elf->nsegments = header->e_phnum;
     if(elf->nsegments){
         elf->segments = malloc(elf->nsegments*sizeof(segment_t));
@@ -169,9 +172,6 @@ void elf_parser(elf_t *elf, int fd){
     }
 
     for(i=0; i<header->e_phnum; i++){
-        //  +1 for ensure that contains the size for the element
-        sanitize(len, header->e_phoff+sizeof(Elf_Phdr)*(i+1));
-
         phdr = ptr+header->e_phoff+sizeof(Elf_Phdr)*i;
 
         sanitize(len, phdr->p_offset+phdr->p_filesz);
@@ -191,8 +191,6 @@ void elf_parser(elf_t *elf, int fd){
     }
 
     for(i=0; i<header->e_shnum; i++){
-        sanitize(len, header->e_shoff+sizeof(Elf_Shdr)*(i+1));
-
         shdr = ptr+header->e_shoff+sizeof(Elf_Shdr)*i;
 
         if(shdr->sh_type == SHT_NOBITS){
