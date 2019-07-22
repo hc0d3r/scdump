@@ -1,16 +1,28 @@
 # scdump
 just a tool to dump shellcode from elf
 
+## Supported files
+
+- [x] ELF 64-bit LSB
+- [x] ELF 64-bit MSB
+- [x] ELF 32-bit LSB
+- [x] ELF 32-bit MSB
+
 ## Compile and install:
 
 ```
 $ make
-  CC src/main.c
-  CC src/elf-multiarch.c
-  CC src/elf-multiarch.c
-  CC src/elf-common.c
-  CC src/io.c
-cc -Wall -Wextra -pie -fPIE -fstack-protector-all -D_FORTIFY_SOURCE=2 -O2 -Wl,-z,relro,-z,now -o scdump obj/main.o obj/elf-multiarch32.o obj/elf-multiarch64.o obj/elf-common.o obj/io.o
+  CC obj/main.o
+  CC obj/parser-elf-common.o
+  CC obj/parser-elf-multiarch64.o
+  CC obj/parser-elf-multiarch32.o
+  CC obj/parser-mapfd.o
+  CC obj/sc-extract64.o
+  CC obj/sc-extract32.o
+  CC obj/datadump.o
+  CC obj/parser-elf-endian64.o
+  CC obj/parser-elf-endian32.o
+  CC scdump
 $ sudo make install
 install -s scdump /usr/bin
 ```
@@ -86,6 +98,10 @@ this come from .rodata
 note that 0x17 becomes 23 in decimal
 
 
-## TODO
+## Support
 
-- [ ] add support for little-endian and big-endian, regardless of machine byte order
+If this project helped you, consider making a donation:
+
+paypal: [![](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=RAG26EKAYHQSY&currency_code=BRL&source=url)
+
+btc: 1PpbrY6j1HNPF7fS2LhG9SF2wtyK98GSwq
