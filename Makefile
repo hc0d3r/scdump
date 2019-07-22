@@ -20,7 +20,7 @@ VERSION:
 	@[ -f ./VERSION ] && true || git describe > VERSION
 
 scdump: $(objs)
-	@echo "  CC scdump"
+	@echo "  CC $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 obj/datadump.o: CFLAGS+=-Wno-unused-result
@@ -29,28 +29,27 @@ obj/%64.o: CFLAGS+=-DELFARCH=64
 obj/%32.o: CFLAGS+=-DELFARCH=32
 
 obj/%32.o: src/%.c
-	@echo "  CC $<"
+	@echo "  CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
 obj/%64.o: src/%.c
-	@echo "  CC $<"
+	@echo "  CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
 obj/parser-%64.o: src/parser/%.c
-	@echo "  CC $<"
+	@echo "  CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
 obj/parser-%32.o: src/parser/%.c
-	@echo "  CC $<"
+	@echo "  CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
-
 obj/parser-%.o: src/parser/%.c
-	@echo "  CC $<"
+	@echo "  CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
 obj/%.o: src/%.c
-	@echo "  CC $<"
+	@echo "  CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
 install:
