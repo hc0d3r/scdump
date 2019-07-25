@@ -29,9 +29,10 @@ install -s scdump /usr/bin
 
 ### options:
 ```
-CC - compiler to use
-INSTALLPROG - program to be used for installation (Default: install)
+INSTALLPROG - program to use for installation (Default: install)
 INSTALLDIR - dir to install the program (Default: /usr/bin)
+V - show compiler command line (V=1)
+NH - disable compiler hardening flags (NH=1)
 ```
 
 ## Usage examples:
