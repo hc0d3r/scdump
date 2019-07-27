@@ -17,10 +17,13 @@
 
 void sc_extract(struct extract_opts *opts){
     section_t *section;
-    segment_t *segment;
+    segment_t *segment = NULL;
     Elf_Sym *symbol;
-    Elf_Phdr *phdr;
+    Elf_Phdr *phdr = NULL, *aux = NULL;
     elf_t elf;
+
+    uintx_t start, end, len = 0, max = 0;
+    uint16_t i;
 
     elf_parser(&elf, opts->fd);
 
@@ -29,6 +32,8 @@ void sc_extract(struct extract_opts *opts){
 
         if(section)
             datadump(opts->fd_out, opts->raw, section->data, section->len);
+        else
+            die("section %s not found\n", opts->section);
     }
 
     if(opts->symbol){
@@ -44,26 +49,40 @@ void sc_extract(struct extract_opts *opts){
             datadump(opts->fd_out, opts->raw,
                 (char *)section->data+symbol->st_value-section->header->sh_addr,
                 symbol->st_size);
+        } else {
+            die("symbol '%s' not found\n", opts->symbol);
         }
     }
 
     if(ElfA(opts->size.addr_, )){
-        uintx_t start, end;
-        uint16_t i;
-
         start = ElfA(opts->addr.addr_, );
         end = ElfA(opts->size.addr_, );
 
-        for(i=0; i<elf.header->e_phnum; i++){
+        for(i = 0; i < elf.header->e_phnum; i++){
             phdr = elf.segments[i].header;
             if(start >= phdr->p_vaddr){
-
                 if(phdr->p_vaddr+phdr->p_filesz >= start+end){
                     segment = elf.segments + i;
-
-                    datadump(opts->fd_out, opts->raw,
-                        segment->data + start - phdr->p_vaddr, end);
+                    len = end;
+                    break;
                 }
+
+                if(max < phdr->p_filesz){
+                    max = phdr->p_filesz;
+                    aux = phdr;
+                }
+            }
+        }
+
+        if(segment){
+            datadump(opts->fd_out, opts->raw,
+                segment->data + start - phdr->p_vaddr, len);
+        } else {
+            if(!max){
+                die("address 0x%" ElfA(PRIx, ) " not found\n", start);
+            } else {
+                die("out of range: %" ElfA(PRIu, ) " byte(s) required,"
+                    " %" ElfA(PRIu, ) " avaliable\n", end, (aux->p_vaddr - start)+aux->p_filesz);
             }
         }
     }

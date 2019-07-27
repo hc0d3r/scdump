@@ -61,11 +61,12 @@ Elf_Sym *sym_name_lookup(elf_t *elf, const char *name){
 
     size_t slen, i;
 
-    strtab = getsectionbyname(elf, ".strtab");
-    symtab = getsectionbyname(elf, ".symtab");
+    if(!(strtab = getsectionbyname(elf, ".strtab"))){
+        die("section .strtab not found\n");
+    }
 
-    if(!strtab || !symtab){
-        goto end;
+    if(!(symtab = getsectionbyname(elf, ".symtab"))){
+        die("section .symtab not found\n");
     }
 
     if(elf_endian(*(elf->header)) != M_BYTE_ORDER){
@@ -131,7 +132,6 @@ Elf_Sym *sym_name_lookup(elf_t *elf, const char *name){
         }
     }
 
-    end:
     return ret;
 }
 
@@ -164,8 +164,7 @@ void elf_parser(elf_t *elf, int fd){
         sanity_check(len, header->e_shoff+sizeof(Elf_Shdr)*header->e_shnum);
     }
 
-    elf->nsegments = header->e_phnum;
-    if(elf->nsegments){
+    if((elf->nsegments = header->e_phnum)){
         elf->segments = malloc(elf->nsegments*sizeof(segment_t));
         if(elf->segments == NULL){
             perror("malloc()");
@@ -173,9 +172,8 @@ void elf_parser(elf_t *elf, int fd){
         }
     }
 
-    for(i=0; i<header->e_phnum; i++){
-        phdr = ptr+header->e_phoff+sizeof(Elf_Phdr)*i;
-
+    phdr = ptr+header->e_phoff;
+    for(i = 0; i < header->e_phnum; i++, phdr++){
         sanity_check(len, phdr->p_offset+phdr->p_filesz);
 
         elf->segments[i].header = phdr;
@@ -183,8 +181,7 @@ void elf_parser(elf_t *elf, int fd){
         elf->segments[i].data = (phdr->p_filesz) ? ptr+phdr->p_offset : NULL;
     }
 
-    elf->nsections = header->e_shnum;
-    if(elf->nsections){
+    if((elf->nsections = header->e_shnum)){
         elf->sections = malloc(elf->nsections*sizeof(section_t));
         if(elf->sections == NULL){
             perror("malloc()");
@@ -192,9 +189,8 @@ void elf_parser(elf_t *elf, int fd){
         }
     }
 
-    for(i=0; i<header->e_shnum; i++){
-        shdr = ptr+header->e_shoff+sizeof(Elf_Shdr)*i;
-
+    shdr = ptr + header->e_shoff;
+    for(i = 0; i < header->e_shnum; i++, shdr++){
         if(shdr->sh_type == SHT_NOBITS){
             elf->sections[i].data = NULL;
             elf->sections[i].len = 0;
